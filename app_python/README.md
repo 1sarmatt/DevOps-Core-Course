@@ -142,6 +142,64 @@ http http://localhost:5000/
 http http://localhost:5000/health
 ```
 
+## Docker
+
+This application can be run using Docker for containerized deployment.
+
+### Building the Image
+
+```bash
+# Build the Docker image
+docker build -t devops-info-service:latest .
+
+# Build with custom tag
+docker build -t yourusername/devops-info-service:v1.0.0 .
+```
+
+### Running the Container
+
+```bash
+# Run the container with default port mapping
+docker run -d -p 5000:5000 --name devops-info devops-info-service:latest
+
+# Run with custom port
+docker run -d -p 8080:5000 --name devops-info devops-info-service:latest
+
+# Run with environment variables
+docker run -d -p 5000:5000 --name devops-info -e PORT=8080 -e DEBUG=True devops-info-service:latest
+```
+
+### Pulling from Docker Hub
+
+```bash
+# Pull the image
+docker pull yourusername/devops-info-service:latest
+
+# Run the pulled image
+docker run -d -p 5000:5000 --name devops-info yourusername/devops-info-service:latest
+```
+
+### Container Features
+
+- **Non-root user**: Runs as `appuser` for security
+- **Minimal base image**: Uses `python:3.13-slim` for smaller size
+- **Health checks**: Built-in health check endpoint
+- **Optimized layers**: Efficient layer caching for faster rebuilds
+
+### Container Testing
+
+```bash
+# Test the running container
+curl http://localhost:5000/
+curl http://localhost:5000/health
+
+# Check container logs
+docker logs devops-info
+
+# Verify non-root user
+docker exec devops-info whoami
+```
+
 ## Development
 
 ### Code Structure
