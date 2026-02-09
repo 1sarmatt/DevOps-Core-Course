@@ -1,7 +1,7 @@
 # Lab 3 — Continuous Integration (CI/CD)
 
-![Status](https://github.com/YOUR_USERNAME/YOUR_REPO/workflows/Python%20CI%2FCD/badge.svg)
-![Coverage](https://codecov.io/gh/YOUR_USERNAME/YOUR_REPO/branch/main/graph/badge.svg)
+![Status](https://github.com/1sarmatt/DevOps-Core-Course/workflows/Python%20CI%2FCD/badge.svg)
+![Coverage](https://codecov.io/gh/1sarmatt/DevOps-Core-Course/branch/main/graph/badge.svg?flag=python)
 
 ## Overview
 
@@ -82,7 +82,7 @@ TOTAL                    237      8    97%
 
 ### ✅ Successful Workflow Run
 
-**GitHub Actions:** [Link to workflow run](https://github.com/YOUR_USERNAME/YOUR_REPO/actions)
+**GitHub Actions:** [Link to workflow run](https://github.com/1sarmatt/DevOps-Core-Course/actions)
 
 The workflow completes in ~2-3 minutes with all jobs passing:
 - ✅ Test & Lint (Python 3.12)
@@ -91,7 +91,7 @@ The workflow completes in ~2-3 minutes with all jobs passing:
 
 ### ✅ Docker Image on Docker Hub
 
-**Docker Hub:** [YOUR_USERNAME/devops-info-service](https://hub.docker.com/r/YOUR_USERNAME/devops-info-service)
+**Docker Hub:** [1sarmatt/devops-info-service](https://hub.docker.com/r/1sarmatt/devops-info-service)
 
 **Tags created per build:**
 - `2024.02.09` - CalVer date tag

@@ -1,5 +1,7 @@
 # DevOps Info Service
 
+[![Python CI](https://github.com/1sarmatt/DevOps-Core-Course/workflows/Python%20CI%2FCD/badge.svg)](https://github.com/1sarmatt/DevOps-Core-Course/actions/workflows/python-ci.yml)
+[![codecov](https://codecov.io/gh/1sarmatt/DevOps-Core-Course/branch/main/graph/badge.svg?flag=python)](https://codecov.io/gh/1sarmatt/DevOps-Core-Course?flag=python)
 
 A comprehensive web service that provides detailed information about itself and its runtime environment. This service serves as the foundation for monitoring and system introspection in DevOps workflows.
 
