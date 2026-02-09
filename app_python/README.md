@@ -1,5 +1,6 @@
 # DevOps Info Service
 
+
 A comprehensive web service that provides detailed information about itself and its runtime environment. This service serves as the foundation for monitoring and system introspection in DevOps workflows.
 
 ## Overview
@@ -202,11 +203,60 @@ docker exec devops-info whoami
 
 ## Development
 
+### Running Tests
+
+This project uses pytest for comprehensive unit testing.
+
+#### Install Test Dependencies
+```bash
+pip install -r requirements-dev.txt
+```
+
+#### Run Tests
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+
+# Run with coverage report
+pytest --cov=. --cov-report=term-missing
+
+# Run specific test file
+pytest tests/test_app.py
+
+# Run specific test class
+pytest tests/test_app.py::TestMainEndpoint -v
+```
+
+#### Test Coverage
+Current test coverage: **97%** (237 statements, 8 missed)
+
+Tests cover:
+- ✅ All endpoints (/, /health)
+- ✅ Response structure and data types
+- ✅ Error handling (404, 500)
+- ✅ Edge cases (user agents, query params, concurrent requests)
+- ✅ Time-based functionality (uptime tracking)
+
 ### Code Structure
 - `app.py` - Main application file with all endpoints
 - `requirements.txt` - Python dependencies
-- `tests/` - Unit tests (to be implemented in Lab 3)
+- `requirements-dev.txt` - Development dependencies (pytest, coverage, etc.)
+- `tests/` - Unit tests with pytest
 - `docs/` - Documentation and lab submissions
+- `pytest.ini` - Pytest configuration
+- `.dockerignore` - Files excluded from Docker builds
+
+### Linting
+```bash
+# Install pylint
+pip install pylint
+
+# Run linter
+pylint app.py
+```
 
 ### Best Practices Implemented
 - Clean code organization with clear function separation
@@ -215,17 +265,31 @@ docker exec devops-info whoami
 - Environment-based configuration
 - PEP 8 compliant code style
 - Type hints and docstrings
+- **Comprehensive unit testing with pytest**
+- **CI/CD pipeline with GitHub Actions**
+- **Automated security scanning with Snyk**
+- **Test coverage tracking with Codecov**
+
+## CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+- ✅ **Automated Testing** - Runs pytest on every push/PR
+- ✅ **Code Linting** - Pylint checks code quality
+- ✅ **Security Scanning** - Snyk checks for vulnerabilities
+- ✅ **Docker Build & Push** - Automated image publishing to Docker Hub
+- ✅ **Coverage Tracking** - Codecov integration for coverage reports
+- ✅ **Calendar Versioning** - Automatic CalVer tagging (YYYY.MM.DD)
+
+See [docs/LAB03.md](docs/LAB03.md) for detailed CI/CD documentation.
 
 ## Future Enhancements
 
 This service is designed to evolve throughout the DevOps course:
-- Containerization with Docker (Lab 2)
-- Unit testing and CI/CD pipeline (Lab 3)
+- ✅ Containerization with Docker (Lab 2) - **COMPLETED**
+- ✅ Unit testing and CI/CD pipeline (Lab 3) - **COMPLETED**
 - Metrics endpoint for Prometheus (Lab 8)
 - Kubernetes deployment with health probes (Lab 9)
 - Persistence and visit tracking (Lab 12)
 - Multi-environment deployment (Lab 13)
 
-## License
-
-This project is part of the DevOps Core Course curriculum.

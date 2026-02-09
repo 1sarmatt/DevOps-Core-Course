@@ -63,9 +63,13 @@ docs/
 .env.*.local
 
 # Testing
+tests/
 .pytest_cache/
 .coverage
 htmlcov/
+coverage.xml
+pytest.ini
+requirements-dev.txt
 
 # Docker files
 Dockerfile*
