@@ -1,5 +1,7 @@
 # Lab 3 Bonus — Multi-App CI with Path Filters
 
+![Go CI/CD](https://github.com/1sarmatt/DevOps-Core-Course/workflows/Go%20CI%2FCD/badge.svg)
+![Coverage](https://codecov.io/gh/1sarmatt/DevOps-Core-Course/branch/main/graph/badge.svg?flag=go)
 
 ## Overview
 

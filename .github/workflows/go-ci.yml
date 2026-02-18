@@ -14,7 +14,7 @@ on:
 
 env:
   GO_VERSION: '1.21'
-  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/devops-info-service-go
+  DOCKER_IMAGE: 1sarmatt/devops-info-service-go
 
 jobs:
   test:
