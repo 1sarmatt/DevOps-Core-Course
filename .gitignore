@@ -16,6 +16,12 @@ pulumi/__pycache__/
 pulumi/Pulumi.*.yaml
 pulumi/setup-aws.sh
 
+# Ansible
+ansible/*.retry
+ansible/.vault_pass
+ansible/**/__pycache__/
+ansible/**/*.pyc
+
 # SSH Keys
 *.pem
 labsuser.pub
