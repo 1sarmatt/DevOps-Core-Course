@@ -29,6 +29,11 @@ jobs:
         run: |
           pip install ansible ansible-lint
 
+      - name: Create temporary vault password file for linting
+        run: |
+          echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > ansible/.vault_pass
+          chmod 600 ansible/.vault_pass
+
       - name: Run ansible-lint
         run: |
           cd ansible
@@ -39,6 +44,10 @@ jobs:
           ansible-playbook playbooks/deploy.yml --syntax-check
           ansible-playbook playbooks/provision.yml --syntax-check
           ansible-playbook playbooks/site.yml --syntax-check
+
+      - name: Cleanup vault password file
+        if: always()
+        run: rm -f ansible/.vault_pass
 
   deploy:
     name: Deploy Application
