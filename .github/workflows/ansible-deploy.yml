@@ -75,6 +75,17 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Create temporary inventory for CI
+        run: |
+          cd ansible
+          cat > inventory/hosts_ci.ini << EOF
+          [webservers]
+          lab-vm ansible_host=${{ secrets.VM_HOST }} ansible_user=${{ secrets.VM_USER }} ansible_ssh_private_key_file=~/.ssh/id_rsa
+
+          [webservers:vars]
+          ansible_python_interpreter=/usr/bin/python3
+          EOF
+
       - name: Create Ansible Vault password file
         run: |
           echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > /tmp/vault_pass
@@ -84,7 +95,7 @@ jobs:
         run: |
           cd ansible
           ansible-playbook playbooks/deploy.yml \
-            -i inventory/hosts.ini \
+            -i inventory/hosts_ci.ini \
             --vault-password-file /tmp/vault_pass
         env:
           ANSIBLE_HOST_KEY_CHECKING: 'False'
