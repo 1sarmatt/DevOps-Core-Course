@@ -3,7 +3,7 @@
   hosts: webservers
   become: yes
   vars_files:
-    - ../group_vars/all.yml
+    - "{{ playbook_dir }}/../group_vars/all.yml"
 
   roles:
     - common

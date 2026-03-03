@@ -1,7 +1,0 @@
----
-# Default variables for app_deploy role
-
-app_restart_policy: unless-stopped
-app_env_vars: {}
-health_check_path: /health
-health_check_timeout: 30
