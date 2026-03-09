@@ -1,1 +1,49 @@
+# Test files
 test
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/*.tfvars
+!terraform/terraform-aws.tfvars.example
+
+# Ansible
+ansible/.vault_pass
+ansible/group_vars/all.yml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Pulumi
+pulumi/venv/
+pulumi/.pulumi/
+pulumi/Pulumi.*.yaml
+
+# Monitoring
+monitoring/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
