@@ -15,7 +15,11 @@
 3. **Access Grafana:**
    - URL: http://localhost:3000
    - Username: `admin`
-   - Password: Check `.env` file (not committed to repo)
+   - Password: see `.env` file (not committed to repo)
+
+4. **Access Prometheus:**
+   - URL: http://localhost:9090
+   - Targets: http://localhost:9090/targets
 
 4. **Configure Loki Data Source in Grafana:**
    - Go to **Connections** → **Data sources** → **Add data source**

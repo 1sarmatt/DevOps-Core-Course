@@ -4,8 +4,10 @@ import platform
 import logging
 import json
 import sys
+import time
 from datetime import datetime, timezone
 from flask import Flask, jsonify, request, Response
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 # JSON Formatter for structured logging
 class JSONFormatter(logging.Formatter):
@@ -19,8 +21,6 @@ class JSONFormatter(logging.Formatter):
             'function': record.funcName,
             'line': record.lineno
         }
-        
-        # Add extra fields if present
         if hasattr(record, 'method'):
             log_data['method'] = record.method
         if hasattr(record, 'path'):
@@ -31,17 +31,12 @@ class JSONFormatter(logging.Formatter):
             log_data['client_ip'] = record.client_ip
         if hasattr(record, 'user_agent'):
             log_data['user_agent'] = record.user_agent
-            
         return json.dumps(log_data)
 
-# Configure logging with JSON format
+# Configure logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-# Remove default handlers
 logger.handlers = []
-
-# Add JSON handler
 handler = logging.StreamHandler(sys.stdout)
 handler.setFormatter(JSONFormatter())
 logger.addHandler(handler)
@@ -56,40 +51,64 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 # Application start time
 START_TIME = datetime.now(timezone.utc)
 
-# Log application startup
+# ── Prometheus Metrics ──────────────────────────────────────────────────────
+http_requests_total = Counter(
+    'http_requests_total',
+    'Total HTTP requests',
+    ['method', 'endpoint', 'status']
+)
+
+http_request_duration_seconds = Histogram(
+    'http_request_duration_seconds',
+    'HTTP request duration in seconds',
+    ['method', 'endpoint'],
+    buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+)
+
+http_requests_in_progress = Gauge(
+    'http_requests_in_progress',
+    'HTTP requests currently being processed'
+)
+
+endpoint_calls_total = Counter(
+    'devops_info_endpoint_calls_total',
+    'Total calls per endpoint',
+    ['endpoint']
+)
+
+system_info_collection_seconds = Histogram(
+    'devops_info_system_collection_seconds',
+    'Time spent collecting system info'
+)
+# ────────────────────────────────────────────────────────────────────────────
+
 logger.info('Application starting', extra={
-    'host': HOST,
-    'port': PORT,
-    'debug': DEBUG,
+    'host': HOST, 'port': PORT, 'debug': DEBUG,
     'python_version': platform.python_version(),
     'platform': platform.system()
 })
 
+
 def get_uptime():
-    """Calculate application uptime."""
     delta = datetime.now(timezone.utc) - START_TIME
     seconds = int(delta.total_seconds())
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
     remaining_seconds = seconds % 60
-    
     if hours > 0:
-        human_readable = f"{hours} hour{'s' if hours != 1 else ''}, {minutes} minute{'s' if minutes != 1 else ''}"
+        human = f"{hours} hour{'s' if hours != 1 else ''}, {minutes} minute{'s' if minutes != 1 else ''}"
     elif minutes > 0:
-        human_readable = f"{minutes} minute{'s' if minutes != 1 else ''}, {remaining_seconds} second{'s' if remaining_seconds != 1 else ''}"
+        human = f"{minutes} minute{'s' if minutes != 1 else ''}, {remaining_seconds} second{'s' if remaining_seconds != 1 else ''}"
     else:
-        human_readable = f"{remaining_seconds} second{'s' if remaining_seconds != 1 else ''}"
-    
-    return {
-        'seconds': seconds,
-        'human': human_readable
-    }
+        human = f"{remaining_seconds} second{'s' if remaining_seconds != 1 else ''}"
+    return {'seconds': seconds, 'human': human}
+
 
 def get_system_info():
-    """Collect system information."""
+    t0 = time.time()
     try:
         platform_info = platform.uname()
-        return {
+        info = {
             'hostname': socket.gethostname(),
             'platform': platform_info.system,
             'platform_version': platform_info.version,
@@ -99,17 +118,16 @@ def get_system_info():
         }
     except Exception as e:
         logger.error('Error getting system info', extra={'error': str(e)})
-        return {
-            'hostname': 'unknown',
-            'platform': 'unknown',
-            'platform_version': 'unknown',
-            'architecture': 'unknown',
-            'cpu_count': 0,
-            'python_version': platform.python_version()
+        info = {
+            'hostname': 'unknown', 'platform': 'unknown',
+            'platform_version': 'unknown', 'architecture': 'unknown',
+            'cpu_count': 0, 'python_version': platform.python_version()
         }
+    system_info_collection_seconds.observe(time.time() - t0)
+    return info
+
 
 def get_request_info():
-    """Collect request information."""
     return {
         'client_ip': request.remote_addr,
         'user_agent': request.headers.get('User-Agent', 'Unknown'),
@@ -117,9 +135,11 @@ def get_request_info():
         'path': request.path
     }
 
+
 @app.before_request
-def log_request():
-    """Log incoming requests"""
+def before_request():
+    request._start_time = time.time()
+    http_requests_in_progress.inc()
     logger.info('Incoming request', extra={
         'method': request.method,
         'path': request.path,
@@ -127,9 +147,21 @@ def log_request():
         'user_agent': request.headers.get('User-Agent', 'Unknown')
     })
 
+
 @app.after_request
-def log_response(response):
-    """Log outgoing responses"""
+def after_request(response):
+    duration = time.time() - getattr(request, '_start_time', time.time())
+    endpoint = request.path
+    http_requests_in_progress.dec()
+    http_requests_total.labels(
+        method=request.method,
+        endpoint=endpoint,
+        status=str(response.status_code)
+    ).inc()
+    http_request_duration_seconds.labels(
+        method=request.method,
+        endpoint=endpoint
+    ).observe(duration)
     logger.info('Outgoing response', extra={
         'method': request.method,
         'path': request.path,
@@ -138,13 +170,19 @@ def log_response(response):
     })
     return response
 
+
+@app.route('/metrics')
+def metrics():
+    """Prometheus metrics endpoint."""
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+
+
 @app.route('/')
 def index():
-    """Main endpoint - service and system information."""
+    endpoint_calls_total.labels(endpoint='/').inc()
     uptime = get_uptime()
     system_info = get_system_info()
     request_info = get_request_info()
-    
     response = {
         'service': {
             'name': 'devops-info-service',
@@ -162,71 +200,43 @@ def index():
         'request': request_info,
         'endpoints': [
             {'path': '/', 'method': 'GET', 'description': 'Service information'},
-            {'path': '/health', 'method': 'GET', 'description': 'Health check'}
+            {'path': '/health', 'method': 'GET', 'description': 'Health check'},
+            {'path': '/metrics', 'method': 'GET', 'description': 'Prometheus metrics'}
         ]
     }
-    
-    # Check if pretty printing is requested
     pretty = request.args.get('pretty', 'false').lower() == 'true'
     if pretty:
-        return Response(
-            response=json.dumps(response, indent=4),
-            status=200,
-            mimetype='application/json'
-        )
-    else:
-        return jsonify(response)
+        return Response(json.dumps(response, indent=4), status=200, mimetype='application/json')
+    return jsonify(response)
+
 
 @app.route('/health')
 def health():
-    """Health check endpoint."""
+    endpoint_calls_total.labels(endpoint='/health').inc()
     uptime = get_uptime()
-    
     response = {
         'status': 'healthy',
         'timestamp': datetime.now(timezone.utc).isoformat(),
         'uptime_seconds': uptime['seconds']
     }
-    
-    # Check if pretty printing is requested
     pretty = request.args.get('pretty', 'false').lower() == 'true'
     if pretty:
-        return Response(
-            response=json.dumps(response, indent=4),
-            status=200,
-            mimetype='application/json'
-        )
-    else:
-        return jsonify(response)
+        return Response(json.dumps(response, indent=4), status=200, mimetype='application/json')
+    return jsonify(response)
+
 
 @app.errorhandler(404)
 def not_found(error):
-    """Handle 404 errors."""
-    logger.warning('Page not found', extra={
-        'path': request.path,
-        'client_ip': request.remote_addr
-    })
-    return jsonify({
-        'error': 'Not Found',
-        'message': 'Endpoint does not exist'
-    }), 404
+    logger.warning('Page not found', extra={'path': request.path, 'client_ip': request.remote_addr})
+    return jsonify({'error': 'Not Found', 'message': 'Endpoint does not exist'}), 404
+
 
 @app.errorhandler(500)
 def internal_error(error):
-    """Handle 500 errors."""
-    logger.error('Internal server error', extra={
-        'path': request.path,
-        'error': str(error)
-    })
-    return jsonify({
-        'error': 'Internal Server Error',
-        'message': 'An unexpected error occurred'
-    }), 500
+    logger.error('Internal server error', extra={'path': request.path, 'error': str(error)})
+    return jsonify({'error': 'Internal Server Error', 'message': 'An unexpected error occurred'}), 500
+
 
 if __name__ == '__main__':
-    logger.info('Starting DevOps Info Service', extra={
-        'host': HOST,
-        'port': PORT,
-        'debug': DEBUG
-    })
+    logger.info('Starting DevOps Info Service', extra={'host': HOST, 'port': PORT, 'debug': DEBUG})
     app.run(host=HOST, port=PORT, debug=DEBUG)
