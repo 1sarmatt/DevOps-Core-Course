@@ -1,0 +1,15 @@
+---
+# Default variables for web_app role
+
+app_restart_policy: unless-stopped
+app_env_vars: {}
+health_check_path: /health
+health_check_timeout: 30
+compose_project_dir: "/opt/{{ app_name }}"
+
+# Wipe Logic Control
+web_app_wipe: false  # Default: do not wipe
+
+# Set to true to remove application completely
+# Wipe only:     ansible-playbook deploy.yml -e "web_app_wipe=true" --tags web_app_wipe
+# Clean install: ansible-playbook deploy.yml -e "web_app_wipe=true"
