@@ -1,0 +1,17 @@
+---
+# Common system setup tasks
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install common packages
+  apt:
+    name: "{{ common_packages }}"
+    state: present
+    update_cache: yes
+
+- name: Set timezone
+  timezone:
+    name: "{{ timezone }}"

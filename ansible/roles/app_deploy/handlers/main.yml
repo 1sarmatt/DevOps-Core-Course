@@ -1,0 +1,8 @@
+---
+# Application deployment handlers
+
+- name: restart application
+  community.docker.docker_container:
+    name: "{{ app_container_name }}"
+    state: started
+    restart: yes
