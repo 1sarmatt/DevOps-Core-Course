@@ -169,3 +169,66 @@ helm template devops-release k8s/devops-info-service
 # Dry run
 helm install --dry-run --debug test-release k8s/devops-info-service
 ```
+
+
+---
+
+## Bonus — Library Charts
+
+### Structure
+
+```
+k8s/
+├── common-lib/                        # Library chart (type: library)
+│   ├── Chart.yaml
+│   └── templates/
+│       └── _common.tpl                # Shared: name, fullname, labels, selectorLabels
+├── devops-info-service/               # App 1 — uses common-lib
+│   ├── Chart.yaml (dependency: common-lib)
+│   └── templates/_helpers.tpl        # Delegates to common.*
+└── nginx-app/                         # App 2 — uses common-lib
+    ├── Chart.yaml (dependency: common-lib)
+    └── templates/_helpers.tpl        # Delegates to common.*
+```
+
+### Shared templates in `common-lib`
+
+| Template | Purpose |
+|----------|---------|
+| `common.name` | Chart name with nameOverride support |
+| `common.fullname` | `release-chart` name, max 63 chars |
+| `common.chart` | `chart-version` label value |
+| `common.labels` | Full set of standard labels |
+| `common.selectorLabels` | Minimal labels for pod selectors |
+
+### Both apps use library via dependency
+
+```yaml
+# Chart.yaml (both apps)
+dependencies:
+  - name: common-lib
+    version: 0.1.0
+    repository: "file://../common-lib"
+```
+
+```bash
+helm dependency update k8s/devops-info-service
+helm dependency update k8s/nginx-app
+```
+
+### Deployment evidence
+
+```
+NAME            CHART                       APP VERSION   STATUS
+devops-release  devops-info-service-0.2.0   1.0.0         deployed
+nginx-release   nginx-app-0.1.0             1.27.0        deployed
+
+NAME                                 READY
+devops-release-devops-info-service   3/3
+nginx-release-nginx-app              2/2
+```
+
+### Benefits
+- DRY: label logic defined once, used everywhere
+- Consistency: all apps get identical standard labels
+- Maintainability: change label format in one place, all charts updated

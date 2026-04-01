@@ -1,0 +1,10 @@
+apiVersion: v2
+name: nginx-app
+description: Simple nginx application using common-lib
+type: application
+version: 0.1.0
+appVersion: "1.27.0"
+dependencies:
+  - name: common-lib
+    version: 0.1.0
+    repository: "file://../common-lib"
