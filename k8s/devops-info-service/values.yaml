@@ -43,5 +43,9 @@ readinessProbe:
   periodSeconds: 5
   failureThreshold: 3
 
+secret:
+  username: "appuser"
+  password: "changeme"   # override with --set secret.password=... at deploy time
+
 nameOverride: ""
 fullnameOverride: ""

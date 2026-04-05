@@ -18,3 +18,15 @@
 {{- define "devops-info-service.selectorLabels" -}}
 {{- include "common.selectorLabels" . }}
 {{- end }}
+
+{{/*
+Named template for common environment variables (bonus: DRY principle).
+*/}}
+{{- define "devops-info-service.envVars" -}}
+- name: PORT
+  value: {{ .Values.env | toJson | fromJson | first | dig "value" "5000" | quote }}
+- name: HOST
+  value: "0.0.0.0"
+- name: DEBUG
+  value: {{ .Values.debug | default "False" | quote }}
+{{- end }}
