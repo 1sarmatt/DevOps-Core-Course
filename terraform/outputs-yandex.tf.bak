@@ -1,0 +1,31 @@
+# Outputs for Yandex Cloud resources
+
+output "vm_external_ip" {
+  description = "External IP address of the VM"
+  value       = yandex_compute_instance.lab_vm.network_interface[0].nat_ip_address
+}
+
+output "vm_internal_ip" {
+  description = "Internal IP address of the VM"
+  value       = yandex_compute_instance.lab_vm.network_interface[0].ip_address
+}
+
+output "vm_id" {
+  description = "ID of the VM"
+  value       = yandex_compute_instance.lab_vm.id
+}
+
+output "ssh_command" {
+  description = "SSH command to connect to the VM"
+  value       = "ssh ${var.vm_user}@${yandex_compute_instance.lab_vm.network_interface[0].nat_ip_address}"
+}
+
+output "network_id" {
+  description = "ID of the VPC network"
+  value       = yandex_vpc_network.lab_network.id
+}
+
+output "subnet_id" {
+  description = "ID of the subnet"
+  value       = yandex_vpc_subnet.lab_subnet.id
+}
