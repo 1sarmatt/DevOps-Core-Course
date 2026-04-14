@@ -126,6 +126,8 @@ services:
     container_name: devops-python
     ports:
       - "8000:5000"
+    volumes:
+      - app-data:/data
     networks:
       - logging
     labels:
@@ -154,3 +156,4 @@ volumes:
   loki-data:
   grafana-data:
   prometheus-data:
+  app-data:

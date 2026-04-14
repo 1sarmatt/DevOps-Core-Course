@@ -51,6 +51,23 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 # Application start time
 START_TIME = datetime.now(timezone.utc)
 
+# Visits counter file path
+VISITS_FILE = os.getenv('VISITS_FILE', '/data/visits')
+
+
+def read_visits():
+    try:
+        with open(VISITS_FILE, 'r') as f:
+            return int(f.read().strip())
+    except (FileNotFoundError, ValueError):
+        return 0
+
+
+def write_visits(count):
+    os.makedirs(os.path.dirname(VISITS_FILE), exist_ok=True)
+    with open(VISITS_FILE, 'w') as f:
+        f.write(str(count))
+
 # ── Prometheus Metrics ──────────────────────────────────────────────────────
 http_requests_total = Counter(
     'http_requests_total',
@@ -177,9 +194,19 @@ def metrics():
     return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 
+@app.route('/visits')
+def visits():
+    endpoint_calls_total.labels(endpoint='/visits').inc()
+    count = read_visits()
+    return jsonify({'visits': count})
+
+
 @app.route('/')
 def index():
     endpoint_calls_total.labels(endpoint='/').inc()
+    # Increment visits counter
+    count = read_visits() + 1
+    write_visits(count)
     uptime = get_uptime()
     system_info = get_system_info()
     request_info = get_request_info()
@@ -201,6 +228,7 @@ def index():
         'endpoints': [
             {'path': '/', 'method': 'GET', 'description': 'Service information'},
             {'path': '/health', 'method': 'GET', 'description': 'Health check'},
+            {'path': '/visits', 'method': 'GET', 'description': 'Visit counter'},
             {'path': '/metrics', 'method': 'GET', 'description': 'Prometheus metrics'}
         ]
     }

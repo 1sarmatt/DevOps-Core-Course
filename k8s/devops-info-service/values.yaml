@@ -3,7 +3,7 @@ replicaCount: 3
 image:
   repository: 1sarmatt/devops-info-service
   tag: "latest"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   type: NodePort
@@ -42,6 +42,15 @@ readinessProbe:
   initialDelaySeconds: 5
   periodSeconds: 5
   failureThreshold: 3
+
+appEnv: "production"
+logLevel: "INFO"
+
+persistence:
+  enabled: true
+  size: 100Mi
+  storageClass: ""
+  visitsFile: "/data/visits"
 
 secret:
   username: "appuser"

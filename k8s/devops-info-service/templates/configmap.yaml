@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "devops-info-service.fullname" . }}-config
+  labels:
+    {{- include "devops-info-service.labels" . | nindent 4 }}
+data:
+  config.json: |
+    {
+      "app_name": "devops-info-service",
+      "environment": {{ .Values.appEnv | default "production" | quote }},
+      "log_level": {{ .Values.logLevel | default "INFO" | quote }},
+      "features": {
+        "visits_counter": true,
+        "prometheus_metrics": true,
+        "json_logging": true
+      },
+      "server": {
+        "port": {{ .Values.service.targetPort }},
+        "debug": false
+      }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "devops-info-service.fullname" . }}-env
+  labels:
+    {{- include "devops-info-service.labels" . | nindent 4 }}
+data:
+  APP_ENV: {{ .Values.appEnv | default "production" | quote }}
+  LOG_LEVEL: {{ .Values.logLevel | default "INFO" | quote }}
+  VISITS_FILE: {{ .Values.persistence.visitsFile | default "/data/visits" | quote }}
