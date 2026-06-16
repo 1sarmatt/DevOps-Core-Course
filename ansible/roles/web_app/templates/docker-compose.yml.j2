@@ -1,0 +1,15 @@
+services:
+  {{ app_name }}:
+    image: {{ docker_image }}:{{ docker_image_tag }}
+    container_name: {{ app_name }}
+    ports:
+      - "{{ app_port }}:{{ app_port }}"
+    environment:
+      PORT: "{{ app_port }}"
+    restart: {{ app_restart_policy }}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:{{ app_port }}{{ health_check_path }}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

@@ -1,0 +1,4 @@
+*.pyc
+venv/
+setup-aws.sh
+Pulumi.*.yaml

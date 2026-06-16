@@ -1,0 +1,74 @@
+---
+# Web application deployment with Docker Compose
+
+# Wipe logic runs first (when explicitly requested)
+- name: Include wipe tasks
+  include_tasks: wipe.yml
+  tags:
+    - web_app_wipe
+
+- name: Log in to Docker Hub
+  community.docker.docker_login:
+    username: "{{ dockerhub_username }}"
+    password: "{{ dockerhub_password }}"
+    registry_url: https://index.docker.io/v1/
+
+- name: Deploy application with Docker Compose
+  block:
+    - name: Create application directory
+      file:
+        path: "{{ compose_project_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Template docker-compose.yml
+      template:
+        src: docker-compose.yml.j2
+        dest: "{{ compose_project_dir }}/docker-compose.yml"
+        mode: '0644'
+
+    - name: Pull latest Docker image
+      community.docker.docker_image:
+        name: "{{ docker_image }}"
+        tag: "{{ docker_image_tag }}"
+        source: pull
+        force_source: yes
+
+    - name: Deploy with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ compose_project_dir }}"
+        state: present
+        pull: always
+        remove_orphans: yes
+      register: compose_output
+
+    - name: Wait for application port to be available
+      wait_for:
+        port: "{{ app_port }}"
+        delay: 2
+        timeout: "{{ health_check_timeout }}"
+
+    - name: Verify application health endpoint
+      uri:
+        url: "http://localhost:{{ app_port }}{{ health_check_path }}"
+        status_code: 200
+      retries: 3
+      delay: 5
+
+  rescue:
+    - name: Log deployment failure
+      debug:
+        msg: "Docker Compose deployment failed: {{ compose_output }}"
+
+    - name: Show Docker Compose logs
+      command: docker compose -f {{ compose_project_dir }}/docker-compose.yml logs --tail=50
+      register: compose_logs
+      ignore_errors: yes
+
+    - name: Display logs
+      debug:
+        var: compose_logs.stdout_lines
+
+  tags:
+    - app_deploy
+    - compose
