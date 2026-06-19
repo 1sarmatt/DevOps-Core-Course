@@ -1,0 +1,10 @@
+# AWS Configuration Example
+# Copy this to terraform.tfvars and fill with your credentials
+# terraform.tfvars is in .gitignore
+
+aws_region     = "us-east-1"
+aws_access_key = "ASIAXCKZLCGINX77RQXL"
+aws_secret_key = "drh0eqzvj23e6ekHBU+7qM6DYjCBWza/WNm62eS+"
+
+# Optional overrides
+# vm_name = "my-lab-vm"

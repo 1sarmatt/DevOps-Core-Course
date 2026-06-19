@@ -1,0 +1,44 @@
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+docs/
+*.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+devops-info-service
+devops-info-service-*
+
+# Test files
+*.test
+*.out
+coverage.txt
+
+# Dependency directories
+vendor/
+
+# Go modules cache
+go.sum
+
+# Docker files
+Dockerfile*
+.dockerignore
+
+# Logs
+*.log

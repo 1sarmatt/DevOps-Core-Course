@@ -1,1 +1,27 @@
 test
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/*.tfvars
+terraform/*.pem
+
+# Pulumi
+pulumi/.pulumi/
+pulumi/venv/
+pulumi/*.pyc
+pulumi/__pycache__/
+pulumi/Pulumi.*.yaml
+pulumi/setup-aws.sh
+
+# Ansible
+ansible/*.retry
+ansible/.vault_pass
+ansible/**/__pycache__/
+ansible/**/*.pyc
+
+# SSH Keys
+*.pem
+labsuser.pub

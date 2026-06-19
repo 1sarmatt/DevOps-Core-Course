@@ -1,0 +1,111 @@
+# Yandex Cloud Terraform Configuration
+# Lab 4 - Infrastructure as Code
+
+terraform {
+  required_providers {
+    yandex = {
+      source  = "yandex-cloud/yandex"
+      version = "~> 0.100"
+    }
+  }
+  required_version = ">= 1.0"
+}
+
+# Provider configuration
+provider "yandex" {
+  service_account_key_file = var.service_account_key_file
+  cloud_id                 = var.cloud_id
+  folder_id                = var.folder_id
+  zone                     = var.zone
+}
+
+# VPC Network
+resource "yandex_vpc_network" "lab_network" {
+  name        = "lab-network"
+  description = "Network for DevOps Lab 4"
+}
+
+# Subnet
+resource "yandex_vpc_subnet" "lab_subnet" {
+  name           = "lab-subnet"
+  description    = "Subnet for DevOps Lab 4"
+  v4_cidr_blocks = ["10.128.0.0/24"]
+  zone           = var.zone
+  network_id     = yandex_vpc_network.lab_network.id
+}
+
+# Security Group (commented out - requires vpc.admin role)
+# Uncomment if you add vpc.admin role to service account
+# resource "yandex_vpc_security_group" "lab_sg" {
+#   name        = "lab-security-group"
+#   description = "Security group for DevOps Lab VM"
+#   network_id  = yandex_vpc_network.lab_network.id
+#
+#   ingress {
+#     protocol       = "TCP"
+#     description    = "Allow SSH"
+#     v4_cidr_blocks = ["0.0.0.0/0"]
+#     port           = 22
+#   }
+#
+#   ingress {
+#     protocol       = "TCP"
+#     description    = "Allow HTTP"
+#     v4_cidr_blocks = ["0.0.0.0/0"]
+#     port           = 80
+#   }
+#
+#   ingress {
+#     protocol       = "TCP"
+#     description    = "Allow app port 5000"
+#     v4_cidr_blocks = ["0.0.0.0/0"]
+#     port           = 5000
+#   }
+#
+#   egress {
+#     protocol       = "ANY"
+#     description    = "Allow all outgoing traffic"
+#     v4_cidr_blocks = ["0.0.0.0/0"]
+#   }
+# }
+
+# Get latest Ubuntu 22.04 image
+data "yandex_compute_image" "ubuntu" {
+  family = "ubuntu-2204-lts"
+}
+
+# Compute Instance (VM)
+resource "yandex_compute_instance" "lab_vm" {
+  name        = var.vm_name
+  hostname    = var.vm_name
+  platform_id = "standard-v2"
+  zone        = var.zone
+
+  resources {
+    cores         = 2
+    memory        = 1
+    core_fraction = 20  # 20% CPU - free tier
+  }
+
+  boot_disk {
+    initialize_params {
+      image_id = data.yandex_compute_image.ubuntu.id
+      size     = 10
+      type     = "network-hdd"
+    }
+  }
+
+  network_interface {
+    subnet_id = yandex_vpc_subnet.lab_subnet.id
+    nat       = true # Assign public IP
+    # security_group_ids = [yandex_vpc_security_group.lab_sg.id]  # Commented out
+  }
+
+  metadata = {
+    ssh-keys = "${var.vm_user}:${file(var.ssh_public_key_path)}"
+  }
+
+  scheduling_policy {
+    preemptible = false
+  }
+}
